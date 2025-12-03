@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEBULA | AI Web Architect</title>
+    <script src="https://js.puter.com/v2/"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon-blue: #00f3ff;
+            --neon-purple: #bc13fe;
+            --neon-green: #0aff00;
+            --bg-dark: #050510;
+            --glass: rgba(255, 255, 255, 0.05);
+            --border: 1px solid rgba(0, 243, 255, 0.2);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            background-color: var(--bg-dark);
+            color: #fff;
+            font-family: 'Share Tech Mono', monospace;
+            height: 100vh;
+            overflow: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(188, 19, 254, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(0, 243, 255, 0.1) 0%, transparent 20%);
+        }
+
+        /* Space Animation */
+        .stars { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
+        .star { position: absolute; background: white; border-radius: 50%; animation: twinkle var(--duration) infinite ease-in-out; }
+        @keyframes twinkle { 0%, 100% { opacity: 0.2; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } }
+
+        /* Layout */
+        .container { display: grid; grid-template-columns: 350px 1fr; height: 100vh; }
+
+        /* Sidebar */
+        .sidebar {
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(10px);
+            border-right: var(--border);
+            display: flex; flex-direction: column; padding: 20px;
+        }
+
+        .brand {
+            font-family: 'Orbitron', sans-serif; font-size: 24px; color: var(--neon-blue);
+            text-shadow: 0 0 10px var(--neon-blue); margin-bottom: 20px; letter-spacing: 2px;
+            display: flex; align-items: center; gap: 10px;
+        }
+        
+        .status-dot { width: 10px; height: 10px; background: var(--neon-green); border-radius: 50%; box-shadow: 0 0 10px var(--neon-green); }
+
+        .chat-history {
+            flex: 1; overflow-y: auto; margin-bottom: 20px; padding-right: 10px;
+            scroll-behavior: smooth;
+        }
+        .chat-history::-webkit-scrollbar { width: 5px; }
+        .chat-history::-webkit-scrollbar-thumb { background: var(--neon-purple); border-radius: 5px; }
+
+        .message { margin-bottom: 15px; padding: 10px; border-radius: 8px; font-size: 0.9em; line-height: 1.4; animation: fadeIn 0.3s ease; word-wrap: break-word; }
+        .message.user { background: rgba(0, 243, 255, 0.1); border-left: 3px solid var(--neon-blue); align-self: flex-end; }
+        .message.ai { background: rgba(188, 19, 254, 0.1); border-left: 3px solid var(--neon-purple); }
+        .message.system { border: 1px dashed #555; color: #888; font-size: 0.8em; text-align: center; }
+
+        .input-area { position: relative; }
+        textarea {
+            width: 100%; background: var(--glass); border: var(--border); color: #fff; padding: 15px;
+            border-radius: 8px; font-family: inherit; resize: none; outline: none; transition: 0.3s;
+        }
+        textarea:focus { box-shadow: 0 0 15px rgba(0, 243, 255, 0.2); border-color: var(--neon-blue); }
+
+        button.send-btn {
+            position: absolute; bottom: 15px; right: 15px;
+            background: var(--neon-blue); border: none; color: #000; font-weight: bold; padding: 5px 15px;
+            cursor: pointer; clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
+            transition: 0.2s;
+        }
+        button.send-btn:hover { transform: scale(1.05); background: #fff; box-shadow: 0 0 20px var(--neon-blue); }
+        button:disabled { background: #555; color: #888; cursor: not-allowed; }
+
+        /* Workspace */
+        .workspace { position: relative; display: flex; flex-direction: column; background: #000; }
+        .toolbar {
+            height: 50px; background: var(--glass); border-bottom: var(--border);
+            display: flex; align-items: center; justify-content: space-between; padding: 0 20px;
+        }
+        .tabs button {
+            background: transparent; border: none; color: rgba(255,255,255,0.6); padding: 10px;
+            cursor: pointer; font-family: inherit; text-transform: uppercase;
+        }
+        .tabs button.active { color: var(--neon-blue); border-bottom: 2px solid var(--neon-blue); }
+        .actions button {
+            background: transparent; border: 1px solid var(--neon-blue); color: var(--neon-blue);
+            padding: 5px 15px; margin-left: 10px; cursor: pointer; font-family: 'Orbitron', sans-serif;
+            font-size: 0.8em; transition: 0.3s;
+        }
+        .actions button:hover { background: var(--neon-blue); color: #000; box-shadow: 0 0 15px var(--neon-blue); }
+
+        .view-area { flex: 1; position: relative; overflow: hidden; }
+        iframe { width: 100%; height: 100%; border: none; background: #fff; }
+        .code-view {
+            display: none; width: 100%; height: 100%; padding: 20px; overflow: auto;
+            color: #0f0; background: #0d0d0d; font-family: 'Courier New', monospace; white-space: pre-wrap;
+        }
+
+        .workspace.fullscreen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 999; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .empty-state {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            text-align: center; opacity: 0.5;
+        }
+        .loader {
+            display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%; border-top-color: var(--neon-blue); animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+    </style>
+</head>
+<body>
+
+    <div class="stars" id="starContainer"></div>
+
+    <div class="container">
+        <div class="sidebar">
+            <div class="brand">
+                NEBULA <span class="status-dot"></span>
+            </div>
+            <div class="chat-history" id="chatContainer">
+                <div class="message ai">
+                    SYSTEM ONLINE. Connected to Neural Network.<br>
+                    I can generate REAL website code using Claude 3.5 Sonnet.<br><br>
+                    Try: <i>"Make a retro 80s synthwave music player"</i> or <i>"Build a login page for a bank"</i>.
+                </div>
+            </div>
+            <div class="input-area">
+                <textarea id="userInput" rows="3" placeholder="Describe your dream website..."></textarea>
+                <button class="send-btn" id="sendBtn" onclick="handleInput()">GENERATE</button>
+            </div>
+            <div style="margin-top: 10px; font-size: 0.7em; color: gray; text-align: center;">
+                <span style="cursor: pointer; text-decoration: underline;" onclick="clearStorage()">Reset Memory</span>
+            </div>
+        </div>
+
+        <div class="workspace" id="workspace">
+            <div class="toolbar">
+                <div class="tabs">
+                    <button class="active" onclick="switchView('preview')">Preview</button>
+                    <button onclick="switchView('code')">Code</button>
+                </div>
+                <div class="actions">
+                    <button onclick="toggleFullscreen()">[ ] Fullscreen</button>
+                    <button onclick="downloadCode()">↓ Download</button>
+                </div>
+            </div>
+
+            <div class="view-area">
+                <div class="empty-state" id="emptyState">
+                    <h2>AWAITING NEURAL INPUT</h2>
+                    <p>Describe a layout to begin generation.</p>
+                </div>
+                <iframe id="previewFrame"></iframe>
+                <div class="code-view" id="codeView"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. Visuals & Setup ---
+        const starContainer = document.getElementById('starContainer');
+        for(let i=0; i<100; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.width = Math.random() * 3 + 'px';
+            star.style.height = star.style.width;
+            star.style.setProperty('--duration', (Math.random() * 3 + 2) + 's');
+            starContainer.appendChild(star);
+        }
+
+        // --- 2. State Management ---
+        const chatContainer = document.getElementById('chatContainer');
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+        let currentCode = "";
+
+        // Load History
+        window.onload = () => {
+            const history = JSON.parse(localStorage.getItem('nebula_real_chat')) || [];
+            if(history.length > 0) {
+                chatContainer.innerHTML = ''; 
+                history.forEach(msg => addMessageToDOM(msg.sender, msg.text));
+                const lastCode = localStorage.getItem('nebula_real_code');
+                if(lastCode) {
+                    currentCode = lastCode;
+                    renderWebsite(currentCode);
+                }
+            }
+        };
+
+        function saveChat(sender, text) {
+            const history = JSON.parse(localStorage.getItem('nebula_real_chat')) || [];
+            history.push({sender, text});
+            localStorage.setItem('nebula_real_chat', JSON.stringify(history));
+        }
+
+        function clearStorage() {
+            localStorage.removeItem('nebula_real_chat');
+            localStorage.removeItem('nebula_real_code');
+            location.reload();
+        }
+
+        // --- 3. Chat Logic ---
+        function addMessageToDOM(sender, text) {
+            const div = document.createElement('div');
+            div.className = `message ${sender}`;
+            div.innerHTML = text;
+            chatContainer.appendChild(div);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        async function handleInput() {
+            const text = userInput.value.trim();
+            if (!text) return;
+
+            // UI Updates
+            addMessageToDOM('user', text);
+            saveChat('user', text);
+            userInput.value = '';
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = '<div class="loader"></div>';
+
+            const processingId = 'proc-' + Date.now();
+            addMessageToDOM('ai', `<span id="${processingId}">Connecting to Neural Cloud... (This may take 10-20s)</span>`);
+
+            try {
+                // --- THE REAL AI CALL (Using Puter.js) ---
+                // We construct a specific system prompt to force it to behave like a coding bot.
+                const systemPrompt = `
+                    You are an expert AI Web Developer. 
+                    Your goal is to write a SINGLE HTML FILE containing HTML, CSS, and JS.
+                    The user will describe a website. You must generate the full code.
+                    RULES:
+                    1. Return ONLY the raw HTML code. 
+                    2. Do NOT use markdown fences (like \`\`\`html). 
+                    3. Do NOT add explanations or text before/after the code.
+                    4. Use modern CSS (Flexbox/Grid) and make it look professional.
+                    5. If the user asks for a specific theme (neon, dark, space), strictly follow it.
+                `;
+
+                // Calling Claude 3.5 Sonnet via Puter.js
+                const response = await puter.ai.chat(
+                    `${systemPrompt}\n\nUSER REQUEST: ${text}`, 
+                    { model: 'claude-3-5-sonnet' }
+                );
+
+                // Process Response
+                let generatedCode = response.message.content || response.toString();
+                
+                // Cleanup: sometimes AI still adds markdown blocks despite instructions
+                generatedCode = generatedCode.replace(/```html/g, '').replace(/```/g, '').trim();
+
+                document.getElementById(processingId).parentElement.remove(); // Remove loading msg
+                
+                addMessageToDOM('ai', "Blueprint received. Rendering interface...");
+                saveChat('ai', "Blueprint received. Rendering interface...");
+
+                currentCode = generatedCode;
+                localStorage.setItem('nebula_real_code', currentCode);
+                renderWebsite(currentCode);
+
+            } catch (err) {
+                console.error(err);
+                document.getElementById(processingId).innerHTML = "CONNECTION ERROR.";
+                addMessageToDOM('system', `Error: ${err.message}. <br>If a popup appeared, please allow it to sign in to Puter.js for free compute.`);
+            } finally {
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = 'GENERATE';
+            }
+        }
+
+        // --- 4. Rendering & Tools ---
+        function renderWebsite(code) {
+            document.getElementById('emptyState').style.display = 'none';
+            const frame = document.getElementById('previewFrame');
+            const doc = frame.contentWindow.document;
+            doc.open();
+            doc.write(code);
+            doc.close();
+            document.getElementById('codeView').textContent = code;
+        }
+
+        function switchView(view) {
+            const preview = document.getElementById('previewFrame');
+            const code = document.getElementById('codeView');
+            const buttons = document.querySelectorAll('.tabs button');
+            
+            buttons.forEach(b => b.classList.remove('active'));
+
+            if (view === 'preview') {
+                preview.style.display = 'block';
+                code.style.display = 'none';
+                buttons[0].classList.add('active');
+            } else {
+                preview.style.display = 'none';
+                code.style.display = 'block';
+                buttons[1].classList.add('active');
+            }
+        }
+
+        function toggleFullscreen() {
+            document.getElementById('workspace').classList.toggle('fullscreen');
+        }
+
+        function downloadCode() {
+            if(!currentCode) return alert("No code generated yet.");
+            const blob = new Blob([currentCode], { type: 'text/html' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'nebula_website.html';
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
